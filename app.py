@@ -5,7 +5,7 @@ import time
 # 페이지 설정
 st.set_page_config(page_title="천하제일 야바위 대회", page_icon="🔮", layout="centered")
 
-# 세션 상태 초기화
+# 세션 상태 초기화 (애니메이션 플래그 포함)
 if "streak" not in st.session_state:
     st.session_state.streak = 0
 if "max_streak" not in st.session_state:
@@ -16,12 +16,13 @@ if "game_status" not in st.session_state:
     st.session_state.game_status = "ready"
 if "chosen_cup" not in st.session_state:
     st.session_state.chosen_cup = None
+# 섞는 중인지 확인하는 플래그 (중요!)
 if "shuffling" not in st.session_state:
     st.session_state.shuffling = False
 
-# 컵 섞기 함수 (모션 추가!)
+# 컵 섞기 함수 (다음 판 버튼 누를 때 호출)
 def shuffle_cups():
-    st.session_state.shuffling = True
+    st.session_state.shuffling = True  # 섞기 시작!
     st.session_state.answer = random.randint(1, 3)
     st.session_state.game_status = "ready"
     st.session_state.chosen_cup = None
@@ -74,12 +75,13 @@ elif st.session_state.streak >= 3:
 
 st.write("")
 
-# [애니메이션 효과] 다음 판이나 리셋 버튼을 누르면 컵이 섞이는 모션을 보여줌!
+# ✨ [애니메이션 효과 활성화!] (맨 앞의 #을 모두 지웠습니다.)
 if st.session_state.shuffling:
-    with st.spinner("🔮 타짜가 현란하게 컵을 섞는 중... 👀"):
-        time.sleep(1.2) # 1.2초 동안 섞는 척 멈추기
-    st.session_state.shuffling = False
-    st.rerun()
+    # 컵들이 싹 사라지고 로딩 애니메이션이 나옵니다!
+    with st.spinner("🔮 타짜가 현란하게 컵을 섞는 중... 눈 떼지 마세요! 👀"):
+        time.sleep(1.2) # 1.2초 동안 타임 루프 (섞는 연출)
+    st.session_state.shuffling = False # 섞기 완료
+    st.rerun() # 화면 새로고침해서 컵 다시 보여주기
 
 # 컵 버튼 배치 (가로로 3개)
 cup_cols = st.columns(3)
