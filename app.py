@@ -5,10 +5,9 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="천하제일 야바위 대회", page_icon="🔮", layout="centered")
 
 st.title("🔮 천하제일 야바위 대회")
-st.write("눈앞에서 휙휙 섞이는 컵을 잘 보고 보석이 든 컵을 맞혀보세요!")
+st.write("처음에 보여주는 보석 위치를 눈으로 잘 기억하고 쫓아가세요!")
 st.markdown("---")
 
-# HTML + JavaScript 기반의 진짜 움직이는 게임 구현 (따옴표 에러 방지 처리)
 game_html = """
 <!DOCTYPE html>
 <html>
@@ -118,7 +117,7 @@ game_html = """
     </div>
 
     <button class="btn" id="start-btn" onclick="startShuffle()">🔮 컵 섞기 시작!</button>
-    <div id="message">😏 쫄지 말고 [컵 섞기 시작]을 눌러봐!</div>
+    <div id="message">😏 보석 위치를 확인하려면 [컵 섞기 시작]을 눌러봐!</div>
 
     <script>
         let streak = 0;
@@ -152,19 +151,32 @@ game_html = """
             isShuffling = true;
             isGameOver = false;
             document.getElementById('start-btn').disabled = true;
-            document.getElementById('message').innerText = "👀 눈 떼지 마라! 컵 섞는다!!";
             
+            // 1. 무작위 정답 세팅
+            answer = Math.floor(Math.random() * 3);
+            for(let i=0; i<3; i++) {
+                document.getElementById('item' + i).innerText = (i === answer) ? "💎" : "❌";
+            }
+
+            // 2. ✨ [업그레이드] 섞기 전에 보석이 어딨는지 1초간 먼저 오픈해서 보여주기!
+            document.getElementById('message').innerText = "💎 보석 위치를 잘 기억하세요!!";
+            for(let i=0; i<3; i++) {
+                document.getElementById('cup-img' + i).classList.add('lifted');
+                document.getElementById('item' + i).style.display = 'block';
+            }
+            
+            // 1초 대기
+            await new Promise(r => setTimeout(r, 1000));
+
+            // 3. 컵을 다시 닫고 아이템 숨기기
             for(let i=0; i<3; i++) {
                 document.getElementById('cup-img' + i).classList.remove('lifted');
                 document.getElementById('item' + i).style.display = 'none';
             }
             await new Promise(r => setTimeout(r, 400));
 
-            answer = Math.floor(Math.random() * 3);
-            for(let i=0; i<3; i++) {
-                document.getElementById('item' + i).innerText = (i === answer) ? "💎" : "❌";
-            }
-
+            // 4. 현란하게 섞기 시작
+            document.getElementById('message').innerText = "👀 눈 떼지 마라! 컵 섞는다!!";
             for (let k = 0; k < 8; k++) {
                 let idx1 = Math.floor(Math.random() * 3);
                 let idx2 = Math.floor(Math.random() * 3);
@@ -175,11 +187,11 @@ game_html = """
                 positions[idx2] = temp;
                 
                 updatePositions();
-                await new Promise(r => setTimeout(r, 250));
+                await new Promise(r => setTimeout(r, 250)); // 움직이는 속도 (250 = 0.25초)
             }
             
             isShuffling = false;
-            document.getElementById('message').innerText = "👇 자, 보석이 든 컵을 골라봐!";
+            document.getElementById('message').innerText = "👇 자, 보석이 어디로 갔을까요? 골라봐!";
         }
 
         function clickCup(cupIndex) {
@@ -194,10 +206,10 @@ game_html = """
             if (cupIndex === answer) {
                 streak++;
                 if (streak > maxStreak) maxStreak = streak;
-                document.getElementById('message').innerText = "🎉 대박 정답! 손기술 장난 아닌데?";
+                document.getElementById('message').innerText = "🎉 대박 정답! 눈 썰미 장난 아닌데?";
             } else {
                 streak = 0;
-                document.getElementById('message').innerText = "💥 맹탕! 타짜한테 당했쥬? 연승 리셋!";
+                document.getElementById('message').innerText = "💥 맹탕! 그걸 놓치나요? 연승 리셋!";
             }
             
             document.getElementById('current-streak').innerText = streak;
