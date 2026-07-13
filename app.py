@@ -1,23 +1,27 @@
 import streamlit as st
 import random
+import time
 
 # 페이지 설정
 st.set_page_config(page_title="천하제일 야바위 대회", page_icon="🔮", layout="centered")
 
-# 세션 상태(변수 저장) 초기화
+# 세션 상태 초기화
 if "streak" not in st.session_state:
-    st.session_state.streak = 0  # 현재 연승 기록
+    st.session_state.streak = 0
 if "max_streak" not in st.session_state:
-    st.session_state.max_streak = 0  # 최고 연승 기록
+    st.session_state.max_streak = 0
 if "answer" not in st.session_state:
-    st.session_state.answer = random.randint(1, 3)  # 보석이 든 컵 (1, 2, 3 중 하나)
+    st.session_state.answer = random.randint(1, 3)
 if "game_status" not in st.session_state:
-    st.session_state.game_status = "ready"  # ready, win, lose
+    st.session_state.game_status = "ready"
 if "chosen_cup" not in st.session_state:
     st.session_state.chosen_cup = None
+if "shuffling" not in st.session_state:
+    st.session_state.shuffling = False
 
-# 게임 리셋 함수
-def reset_game():
+# 컵 섞기 함수 (모션 추가!)
+def shuffle_cups():
+    st.session_state.shuffling = True
     st.session_state.answer = random.randint(1, 3)
     st.session_state.game_status = "ready"
     st.session_state.chosen_cup = None
@@ -36,7 +40,7 @@ def choose_cup(cup_num):
 
 # --- 화면 UI 시작 ---
 
-# 👑 상단 레이아웃 (오른쪽 위에 최고 기록 배치)
+# 상단 레이아웃 (오른쪽 위에 최고 기록 배치)
 header_col1, header_col2 = st.columns([3, 1])
 
 with header_col1:
@@ -44,8 +48,7 @@ with header_col1:
     st.write("세 개의 컵 중 **보석이 든 진짜 컵**을 찾으세요!")
 
 with header_col2:
-    st.write("") # 줄바꿈용 빈칸
-    # 오른쪽 상단에 강조된 최고 기록 배치
+    st.write("") 
     st.markdown(
         f"""
         <div style="background-color: #ffeaa7; padding: 10px; border-radius: 10px; text-align: center; border: 2px solid #fdcb6e;">
@@ -71,6 +74,13 @@ elif st.session_state.streak >= 3:
 
 st.write("")
 
+# [애니메이션 효과] 다음 판이나 리셋 버튼을 누르면 컵이 섞이는 모션을 보여줌!
+if st.session_state.shuffling:
+    with st.spinner("🔮 타짜가 현란하게 컵을 섞는 중... 👀"):
+        time.sleep(1.2) # 1.2초 동안 섞는 척 멈추기
+    st.session_state.shuffling = False
+    st.rerun()
+
 # 컵 버튼 배치 (가로로 3개)
 cup_cols = st.columns(3)
 
@@ -79,10 +89,11 @@ for i in range(1, 4):
         if st.session_state.game_status == "ready":
             st.button(f"🥤 {i}번 컵", on_click=choose_cup, args=(i,), use_container_width=True)
         else:
+            # 중복 에러 해결: 버튼 텍스트 뒤에 숫자를 다르게 붙여서 중복 방지!
             if i == st.session_state.answer:
-                st.button(f"💎 (정답!)", disabled=True, use_container_width=True)
+                st.button(f"💎 정답! ({i}번)", disabled=True, use_container_width=True)
             else:
-                st.button(f"❌ (텅 빔)", disabled=True, use_container_width=True)
+                st.button(f"❌ 텅 빔 ({i}번)", disabled=True, use_container_width=True)
 
 st.write("")
 
@@ -90,8 +101,8 @@ st.write("")
 if st.session_state.game_status == "win":
     st.balloons()
     st.success(f"🎉 대박! 정답은 {st.session_state.answer}번 컵이었습니다!")
-    st.button("다음 판 하기 ➡️", on_click=reset_game, type="primary")
+    st.button("다음 판 하기 ➡️", on_click=shuffle_cups, type="primary")
 
 elif st.session_state.game_status == "lose":
     st.error(f"💥 맹탕! 보석은 {st.session_state.answer}번 컵에 있었습니다.")
-    st.button("다시 도전하기 🔄", on_click=reset_game, type="primary")
+    st.button("다시 도전하기 🔄", on_click=shuffle_cups, type="primary")
